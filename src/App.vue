@@ -48,7 +48,7 @@
 </template>
 
 <script setup>
-  import { computed, reactive,ref } from 'vue';
+  import { computed, onMounted, reactive,ref } from 'vue';
   import { localStorage } from "@/utils/localStorage"
   import debounce from "@/utils/debounce"
   const dataSource = ref([])
@@ -89,6 +89,7 @@
       key: 'total',
     }
   ])
+  const cache_formData = localStorage.get('formData')
   const formData = reactive({
     number:4,
     money: 100,
@@ -109,6 +110,14 @@
       last:0,
     },
   });
+  onMounted(() => {
+    if(!!cache_formData){
+      formData.number_3.last = cache_formData.number_3.current
+      formData.number_1.last = cache_formData.number_1.current
+      formData.number_2.last = cache_formData.number_2.current
+      formData.number_6.last = cache_formData.number_6.current
+    }
+  })
   const result = computed(() => {
     let money = Number(formData.money);
     let number = Number(formData.number);
@@ -144,6 +153,7 @@
  
   const onSubmit = () => {
     console.log('Success:', formData);
+    localStorage.set('formData', formData);
     dataSource.value = [
       {
         name: '03',
