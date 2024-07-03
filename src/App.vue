@@ -6,10 +6,10 @@
         <a-input v-model:value="formData.money"  placeholder="0.00" style="width: 130px" />
       </a-form-item>
       <a-form-item label="房间数">
-        <a-input v-model:value="formData.number"   style="width: 130px" />
+        <a-input v-model:value="formData.number" style="width: 130px" />
       </a-form-item>
       <a-form-item label="电表3" >
-        <a-input v-model:value="formData.number_3.current" placeholder="当前记录" style="width: 130px" />
+        <a-input v-model:value="formData.number_3.current" placeholder="当前记录"  style="width: 130px" />
         <span>-</span>
         <a-input v-model:value="formData.number_3.last" placeholder="上次记录" style="width: 130px" />
       </a-form-item>
@@ -34,7 +34,13 @@
     </a-form>
   </div>
   <div class="table" v-else>
-    <a-table  :dataSource="dataSource" :columns="columns" :pagination="false"></a-table>
+    <a-table :dataSource="dataSource" :columns="columns" :pagination="false">
+      <template #bodyCell="{ column, record }">
+        <template v-if="column.key === 'deg'">
+          {{ record.deg }} 度
+        </template>
+      </template>
+    </a-table>
     <div class="btns">
       <a-button type="primary"  @click="dataSource = []">返回</a-button>
     </div>
@@ -43,6 +49,8 @@
 
 <script setup>
   import { computed, reactive,ref } from 'vue';
+  import { localStorage } from "@/utils/localStorage"
+  import debounce from "@/utils/debounce"
   const dataSource = ref([])
   const columns = ref([
     {
@@ -82,26 +90,23 @@
     }
   ])
   const formData = reactive({
-    number:'',
-    money: '',
+    number:4,
+    money: 100,
     number_3:{
-      current:'',
-      last:'',
-    
+      current:0,
+      last:0,
     },
     number_1:{
-      current:'',
-      last:'',
-    
+      current:0,
+      last:0,
     },
     number_2:{
-      current:'',
-      last:'',
-     
+      current:0,
+      last:0,
     },
     number_6:{
-      current:'',
-      last:'',
+      current:0,
+      last:0,
     },
   });
   const result = computed(() => {
@@ -136,6 +141,7 @@
       public_price,
     }
   })
+ 
   const onSubmit = () => {
     console.log('Success:', formData);
     dataSource.value = [
@@ -143,7 +149,7 @@
         name: '03',
         last: formData.number_3.last,
         current: formData.number_3.current,
-        deg: result.value.number_3.toFixed(2),
+        deg: Math.round(result.value.number_3),
         sum:result.value.number_3_price.toFixed(2),
         total:result.value.number_3_sum.toFixed(2),
         public:result.value.public_price.toFixed(2),
@@ -152,7 +158,7 @@
         name: '01',
         last: formData.number_1.last,
         current: formData.number_1.current,
-        deg: result.value.number_1.toFixed(2),
+        deg:Math.round(result.value.number_1),
         sum:result.value.number_1_price.toFixed(2),
         total:result.value.number_1_sum.toFixed(2),
         public:result.value.public_price.toFixed(2),
@@ -161,7 +167,7 @@
         name: '02',
         last: formData.number_2.last,
         current: formData.number_2.current,
-        deg: result.value.number_2.toFixed(2),
+        deg: Math.round(result.value.number_2),
         sum:result.value.number_2_price.toFixed(2),
         total:result.value.number_2_sum.toFixed(2),
         public:result.value.public_price.toFixed(2),
@@ -170,7 +176,7 @@
         name: '06',
         last: formData.number_6.last,
         current: formData.number_6.current,
-        deg: result.value.number_6.toFixed(2),
+        deg: Math.round(result.value.number_6),
         sum:result.value.number_6_price.toFixed(2),
         total:result.value.number_6_sum.toFixed(2),
         public:result.value.public_price.toFixed(2),
