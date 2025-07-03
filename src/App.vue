@@ -5,28 +5,32 @@
       <a-form-item label="电费充值金额">
         <a-input v-model:value="formData.money"  placeholder="0.00" style="width: 130px" />
       </a-form-item>
-      <a-form-item label="房间数">
+      <a-form-item label="房间数" >
         <a-input v-model:value="formData.number" style="width: 130px" />
       </a-form-item>
       <a-form-item label="电表3" >
         <a-input v-model:value="formData.number_3.current" placeholder="当前记录"  style="width: 130px" />
         <span>-</span>
         <a-input v-model:value="formData.number_3.last" placeholder="上次记录" style="width: 130px" />
+        <a-switch v-model:checked="formData.number_3.disabled" style="margin-left: 20px;"/>
       </a-form-item>
       <a-form-item label="电表1">
         <a-input v-model:value="formData.number_1.current" placeholder="当前记录" style="width: 130px" />
         <span>-</span>
         <a-input v-model:value="formData.number_1.last" placeholder="上次记录" style="width: 130px" />
+        <a-switch v-model:checked="formData.number_1.disabled" style="margin-left: 20px;"/>
       </a-form-item>
       <a-form-item label="电表2">
         <a-input v-model:value="formData.number_2.current" placeholder="当前记录" style="width: 130px" />
         <span>-</span>
         <a-input v-model:value="formData.number_2.last" placeholder="上次记录" style="width: 130px" />
+        <a-switch v-model:checked="formData.number_2.disabled" style="margin-left: 20px;"/>
       </a-form-item>
       <a-form-item label="电表6" >  
         <a-input v-model:value="formData.number_6.current" placeholder="当前记录" style="width: 130px" />
         <span>-</span>
         <a-input v-model:value="formData.number_6.last" placeholder="上次记录" style="width: 130px" />
+        <a-switch v-model:checked="formData.number_6.disabled" style="margin-left: 20px;"/>
       </a-form-item>
       <a-form-item :wrapper-col="{ offset: 9, span: 16 }">
         <a-button type="primary"  @click="onSubmit">生成表格</a-button>
@@ -96,18 +100,22 @@
     number_3:{
       current:0,
       last:0,
+      disabled:true
     },
     number_1:{
       current:0,
       last:0,
+      disabled:true
     },
     number_2:{
       current:0,
       last:0,
+      disabled:true
     },
     number_6:{
       current:0,
       last:0,
+      disabled:true
     },
   });
   onMounted(() => {
@@ -120,20 +128,28 @@
   })
   const result = computed(() => {
     let money = Number(formData.money);
-    let number = Number(formData.number);
+    
     let number_3 = Number(formData.number_3.current) - Number(formData.number_3.last);
-    let number_3_price = number_3 * 0.6;
+    let number_3_price = formData.number_3.disabled ? number_3 * 0.6 : 0;
+    
     let number_1 = Number(formData.number_1.current) - Number(formData.number_1.last);
-    let number_1_price = number_1 * 0.6;
+    let number_1_price = formData.number_1.disabled ? number_1 * 0.6 : 0;
+    
     let number_2 = Number(formData.number_2.current) - Number(formData.number_2.last);
-    let number_2_price = number_2 * 0.6;
+    let number_2_price = formData.number_2.disabled ? number_2 * 0.6 : 0;
+    
     let number_6 = Number(formData.number_6.current) - Number(formData.number_6.last);
-    let number_6_price = number_6 * 0.6;
-    let public_price = (money - number_3_price - number_1_price - number_2_price - number_6_price) / number;
-    let number_3_sum = number_3_price + public_price;
-    let number_1_sum = number_1_price + public_price;
-    let number_2_sum = number_2_price + public_price;
-    let number_6_sum = number_6_price + public_price;
+    let number_6_price = formData.number_6.disabled ? number_6 * 0.6 : 0;
+
+    let enabledRoomCount = [formData.number_1.disabled, formData.number_2.disabled, formData.number_3.disabled, formData.number_6.disabled].filter(Boolean).length;
+    
+    let public_price = enabledRoomCount > 0 ? (money - number_3_price - number_1_price - number_2_price - number_6_price) / enabledRoomCount : 0;
+    
+    let number_3_sum = formData.number_3.disabled ? number_3_price + public_price : 0;
+    let number_1_sum = formData.number_1.disabled ? number_1_price + public_price : 0;
+    let number_2_sum = formData.number_2.disabled ? number_2_price + public_price : 0;
+    let number_6_sum = formData.number_6.disabled ? number_6_price + public_price : 0;
+    
     return {
       number_3,
       number_3_price,
@@ -154,44 +170,52 @@
   const onSubmit = () => {
     console.log('Success:', formData);
     localStorage.set('formData', formData);
-    dataSource.value = [
-      {
-        name: '03',
-        last: formData.number_3.last,
-        current: formData.number_3.current,
-        deg: Math.round(result.value.number_3),
-        sum:result.value.number_3_price.toFixed(2),
-        total:result.value.number_3_sum.toFixed(2),
-        public:result.value.public_price.toFixed(2),
-      },
-      {
-        name: '01',
-        last: formData.number_1.last,
-        current: formData.number_1.current,
-        deg:Math.round(result.value.number_1),
-        sum:result.value.number_1_price.toFixed(2),
-        total:result.value.number_1_sum.toFixed(2),
-        public:result.value.public_price.toFixed(2),
-      },
-      {
-        name: '02',
-        last: formData.number_2.last,
-        current: formData.number_2.current,
-        deg: Math.round(result.value.number_2),
-        sum:result.value.number_2_price.toFixed(2),
-        total:result.value.number_2_sum.toFixed(2),
-        public:result.value.public_price.toFixed(2),
-      },
-      {
-        name: '06',
-        last: formData.number_6.last,
-        current: formData.number_6.current,
-        deg: Math.round(result.value.number_6),
-        sum:result.value.number_6_price.toFixed(2),
-        total:result.value.number_6_sum.toFixed(2),
-        public:result.value.public_price.toFixed(2),
-      },
-    ]
+    const data = [];
+    if (formData.number_3.disabled) {
+        data.push({
+            name: '03',
+            last: formData.number_3.last,
+            current: formData.number_3.current,
+            deg: Math.round(result.value.number_3),
+            sum:result.value.number_3_price.toFixed(2),
+            total:result.value.number_3_sum.toFixed(2),
+            public:result.value.public_price.toFixed(2),
+        });
+    }
+    if (formData.number_1.disabled) {
+        data.push({
+            name: '01',
+            last: formData.number_1.last,
+            current: formData.number_1.current,
+            deg:Math.round(result.value.number_1),
+            sum:result.value.number_1_price.toFixed(2),
+            total:result.value.number_1_sum.toFixed(2),
+            public:result.value.public_price.toFixed(2),
+        });
+    }
+    if (formData.number_2.disabled) {
+        data.push({
+            name: '02',
+            last: formData.number_2.last,
+            current: formData.number_2.current,
+            deg: Math.round(result.value.number_2),
+            sum:result.value.number_2_price.toFixed(2),
+            total:result.value.number_2_sum.toFixed(2),
+            public:result.value.public_price.toFixed(2),
+        });
+    }
+    if (formData.number_6.disabled) {
+        data.push({
+            name: '06',
+            last: formData.number_6.last,
+            current: formData.number_6.current,
+            deg: Math.round(result.value.number_6),
+            sum:result.value.number_6_price.toFixed(2),
+            total:result.value.number_6_sum.toFixed(2),
+            public:result.value.public_price.toFixed(2),
+        });
+    }
+    dataSource.value = data;
   }
 </script>
 
